@@ -27,6 +27,7 @@ namespace E_CommerceCore.Web.Startup
     {
         public IConfiguration Configuration { get; }
 
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -69,6 +70,18 @@ namespace E_CommerceCore.Web.Startup
             services.AddScoped<IEfCoreCategoryRepository, EfCoreCategoryRepository>();
 
             services.AddControllers();
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy(MyAllowSpecificOrigins,
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:4200",
+                                        "*")
+                                        .AllowAnyHeader()
+                                        .AllowAnyMethod();
+                });
+            });
 
             services.AddOpenApiDocument(document =>
             {
@@ -116,6 +129,8 @@ namespace E_CommerceCore.Web.Startup
             }
 
             SeedDB.Initialize(app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider);
+
+            app.UseCors(MyAllowSpecificOrigins);
 
             app.UseHttpsRedirection();
 
